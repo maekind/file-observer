@@ -1,0 +1,61 @@
+# File-observer Docker image
+
+This image is tended to be use for watching into file system directories changes.
+
+## Download
+
+You can download this image by executing the code below:
+
+	docker pull maekind/file-observer:latest
+    
+## Usage
+
+File-observer docker image launches a python script that is executed forever. It watches for changes into a directory passed as argument.
+
+### Arguments
+
+	- -p, --path: Full path to watch for changes.
+	- -r, --recursive: Set to True for recursive watching. Otherwise, set to False. (Default is True)
+
+### Running the docker
+
+In order to watch to a system folder, it has to be mapped with "-v" docker option.
+# File-observer Docker image
+
+This image is tended to be use for watching into file system directories changes.
+
+## Download
+
+You can download this image by executing the code below:
+
+	docker pull maekind/file-observer:latest
+    
+## Usage
+
+File-observer docker image launches a python script that is executed forever. It watches for changes into a directory passed as argument.
+
+### Arguments
+
+	- -p, --path: Full path to watch for changes.
+	- -r, --recursive: Set to True for recursive watching. Otherwise, set to False. (Default is True)
+
+### Running the docker
+
+In order to watch to a system folder, it has to be mapped with "-v" docker option.
+
+Here-below there is an example that maps "/srv/folder" local folder to "/srv/folder" running image folder to watch for changes recursively:
+
+	$> docker run -ti -v /srv/folder:/srv/folder maekind/file-observer:latest -p /srv/folder -r True
+## Further options
+
+In further implementations of the file-observer, extra arguments will be added in order to enable several possibilities for communicating event changes:
+
+a) Log event handler: change events will be logged into the python logger handler.
+
+b) Web service handler: change events will be sent to a web service application (ip:port).
+
+## Credits
+
+2021 Copyright to Marco Espinosa. 
+
+Say hello!: [hi@marcoespinosa.es](mailto:hi@marcoespinosa.es)

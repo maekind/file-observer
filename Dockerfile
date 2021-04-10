@@ -1,7 +1,7 @@
 # File-observer program
 FROM python:slim
 LABEL maekind.webplayer.name="file-observer" \
-      maekind.webplayer.mainteiner="Marco Espinosa" \
+      maekind.webplayer.maintainer="Marco Espinosa" \
       maekind.webplayer.version="1.0" \
       maekind.webplayer.description="Monitoring music folder changes" \
       maekind.webplayer.email="hi@marcoespinosa.es"

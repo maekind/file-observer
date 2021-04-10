@@ -1,5 +1,5 @@
 # File-observer program
-FROM python:latest
+FROM python:slim
 LABEL maekind.webplayer.name="file-observer" \
       maekind.webplayer.mainteiner="Marco Espinosa" \
       maekind.webplayer.version="1.0" \

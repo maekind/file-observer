@@ -35,7 +35,7 @@ If you want to send events to a webservice, you can run the docker image as foll
 
 	$> docker run -ti -v /srv/folder:/srv/folder maekind/file-observer:latest -p /srv/folder -r True -e True -a "http://<your_ip_address_or_fqdn>" -o <port>
 
-I asume that you have a webserver that is listening at <your_ip_address_or_fqdn>:\<port> for the events "created" and "deleted". 
+I asume that you have a webserver that is listening at \<your_ip_address_or_fqdn>:\<port> for the events "created" and "deleted". 
 For instance, you can create a Flask server to test the docker image as follows:
 
 	from flask import Flask

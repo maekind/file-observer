@@ -1,11 +1,14 @@
-#!/usr/bin/env python3 
+#!/usr/bin/env python3
 '''
 File Observer daemon
 '''
 import time
 import argparse
+import requests
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from urllib3.exceptions import NewConnectionError
+from requests.exceptions import RequestException
 
 author = 'Marco Espinosa'
 version = '1.0'
@@ -19,8 +22,10 @@ class FileObserver:
 
     # Private variables
     watchDirectory = ""
+    address = ""
+    port = 0
 
-    def __init__(self, path):
+    def __init__(self, path, address="", port=0):
         '''
         Default constructor
         @path: path to watch
@@ -28,6 +33,8 @@ class FileObserver:
 
         self.observer = Observer()
         self.watchDirectory = path
+        self.address = address
+        self.port = port
 
     def run(self, recursive=True):
         '''
@@ -36,12 +43,19 @@ class FileObserver:
         '''
 
         event_handler = Handler()
+
+        # If webservice enabled, we set host and port variables
+        if self.address != "" and self.port != 0:
+            event_handler.set_address(self.address)
+            event_handler.set_port(self.port)
+
         self.observer.schedule(
             event_handler, self.watchDirectory, recursive=recursive)
         self.observer.start()
 
         try:
             while True:
+                # Execution every 5 seconds
                 time.sleep(5)
         except:
             self.observer.stop()
@@ -54,24 +68,62 @@ class Handler(FileSystemEventHandler):
     '''
     Handler for file observer events
     '''
+    address = ""
+    port = 0
+
+    @staticmethod
+    def set_address(value):
+        '''
+        Setter for host variable
+        '''
+        Handler.address = value
+
+    @staticmethod
+    def set_port(value):
+        '''
+        Setter for port variable
+        '''
+        Handler.port = value
 
     @staticmethod
     def on_any_event(event):
         '''
-        Static method to handler filesystem event changes 
+        Static method to handler filesystem event changes
         '''
         if event.is_directory:
             return None
 
-        elif event.event_type == 'created':
-            # Event is created, you can process it now
-            print(f"Watchdog received created event - {event.src_path}.")
+        elif event.event_type in ['created', 'deleted']:
+            print(f"Watchdog received {event.event_type} event - {event.src_path}.")
+            Handler.__send_event(event.event_type, event.src_path)
 
-        elif event.event_type == 'deleted':
-            # Event is deleted, you can process it now
-            print(f"Watchdog received deleted event - {event.src_path}.")
+    @staticmethod
+    def __send_event(event, payload):
+        '''
+        Send event to webservice
+        '''
+        if Handler.address != "" and Handler.port != 0:
+            print(
+                f"Sending {event} with {payload} to webservice")
 
-        # TODO: Send events to event-manager docker app
+            try:
+                r = requests.get(
+                    f'{Handler.address}:{Handler.port}/{event}/\"{payload}\"')
+            except RequestException:
+                print(f'Request ERROR.')
+                return
+            
+            if r.status_code == 200:
+                print('OK')
+            else:
+                print(f'Request ERROR: {r.status_code}')
+
+def exit_fail(parser):
+    '''
+    Exit program with errors
+    '''
+    parser.print_help()
+    exit(1)
 
 def main():
     '''
@@ -79,20 +131,45 @@ def main():
     '''
     parser = argparse.ArgumentParser(description='File observer')
     parser.add_argument('-p', '--path', help='Path to watch',
-                       dest='path', metavar='STRING')
+                        dest='path', metavar='STRING')
 
     parser.add_argument('-r', '--recursive', help='Set to True to recursive watch',
-                       dest='recursive', metavar='BOOLEAN')
+                        dest='recursive', metavar='BOOLEAN')
+
+    parser.add_argument('-e', '--enable-webservice', help='Set to True to send events to webservice',
+                        dest='enablewebservice', metavar='BOOLEAN')
+
+    parser.add_argument('-a', '--address',
+                        help='Webservice host address or FQDN. Mandatory if enable-webservice set to True',
+                        dest='address', metavar='STRING')
+
+    parser.add_argument('-o', '--port',
+                        help='Webservice port. Mandatory if enable-webservice set to True',
+                        dest='port', metavar='INT')
 
     args = parser.parse_args()
 
+    # Check for arguments
     if args.path is not None and args.recursive is not None:
-        watch = FileObserver(args.path)
+
+        address = ""
+        port = 0
+
+        if args.enablewebservice is not None:
+            # If enablewebservice, host and port have to be provided
+            if args.enablewebservice == True and (args.address is None or args.port is not None):
+                exit_fail(parser)
+            else:
+                address = args.address
+                port = args.port
+        # Creation of FileObserver instance
+        watch = FileObserver(args.path, address, port)
+        # Launch of FileObserver
         watch.run(args.recursive)
     else:
-        parser.print_help()
-        exit(1)
+        exit_fail(parser)
 
+    exit(0)
 
 if __name__ == '__main__':
     main()

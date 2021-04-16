@@ -5,10 +5,12 @@ File Observer daemon
 import time
 import argparse
 import requests
+import logging
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import RequestException
+
 
 author = 'Marco Espinosa'
 version = '1.0'
@@ -129,6 +131,31 @@ def main():
     '''
     Function main
     '''
+    level = logging.DEBUG
+
+    log_setup = logging.getLogger("file-observer")
+
+    # Formatting logger output
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+    # Setting logger to console       
+    log_handler = logging.StreamHandler()
+
+    # Setting formatter
+    log_handler.setFormatter(formatter)
+
+    # Setting level
+    log_setup.setLevel(level)
+
+    # Creating handler to configured logger
+    log_setup.addHandler(log_handler)
+
+    # Set logger
+    logger = logging.getLogger("file-observer")
+
+    # Get arguments
     parser = argparse.ArgumentParser(description='File observer')
     parser.add_argument('-p', '--path', help='Path to watch',
                         dest='path', metavar='STRING')
@@ -163,8 +190,9 @@ def main():
                 address = args.address
                 port = args.port
         # Creation of FileObserver instance
-        print(f'Monitoring changes in {args.path}')
-        print(f'Send events to {address}:{port}')
+        logger.info(f'Monitoring changes in {args.path}')
+        logger.info(f'Send events to {address}:{port}')
+
         watch = FileObserver(args.path, address, port)
         # Launch of FileObserver
         watch.run(args.recursive)

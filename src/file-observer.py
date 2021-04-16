@@ -163,6 +163,8 @@ def main():
                 address = args.address
                 port = args.port
         # Creation of FileObserver instance
+        print(f'Monitoring changes in {args.path}')
+        print(f'Send events to {address}:{port}')
         watch = FileObserver(args.path, address, port)
         # Launch of FileObserver
         watch.run(args.recursive)

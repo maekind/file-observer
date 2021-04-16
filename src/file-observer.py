@@ -16,6 +16,7 @@ author = 'Marco Espinosa'
 version = '1.0'
 email = 'hi@marcoespinosa.com'
 
+logger = configure_logging("file-observer")
 
 class FileObserver:
     '''
@@ -61,7 +62,7 @@ class FileObserver:
                 time.sleep(5)
         except:
             self.observer.stop()
-            print("Observer Stopped")
+            logger.info("Observer Stopped")
 
         self.observer.join()
 
@@ -96,7 +97,7 @@ class Handler(FileSystemEventHandler):
             return None
 
         elif event.event_type in ['created', 'deleted']:
-            print(f"Watchdog received {event.event_type} event - {event.src_path}.")
+            logger.info(f"Watchdog received {event.event_type} event - {event.src_path}.")
             Handler.__send_event(event.event_type, event.src_path)
 
     @staticmethod
@@ -105,20 +106,20 @@ class Handler(FileSystemEventHandler):
         Send event to webservice
         '''
         if Handler.address != "" and Handler.port != 0:
-            print(
+            logger.info(
                 f"Sending {event} with {payload} to webservice")
 
             try:
                 r = requests.get(
                     f'{Handler.address}:{Handler.port}/{event}/\"{payload}\"')
             except RequestException:
-                print(f'Request ERROR.')
+                logger.error(f'Request ERROR.')
                 return
             
             if r.status_code == 200:
-                print('OK')
+                logger.info('OK')
             else:
-                print(f'Request ERROR: {r.status_code}')
+                logger.error(f'Request ERROR: {r.status_code}')
 
 def exit_fail(parser):
     '''
@@ -127,17 +128,19 @@ def exit_fail(parser):
     parser.print_help()
     exit(1)
 
-def main():
+def configure_logging(name):
     '''
-    Function main
+    Function to configure loggind
+    @name: logger name
+    @return logger
     '''
     level = logging.DEBUG
 
-    log_setup = logging.getLogger("file-observer")
+    log_setup = logging.getLogger(name)
 
     # Formatting logger output
     formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s [%(name)s] [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
 
     # Setting logger to console       
@@ -153,8 +156,13 @@ def main():
     log_setup.addHandler(log_handler)
 
     # Set logger
-    logger = logging.getLogger("file-observer")
+    return logging.getLogger(name)
 
+def main():
+    '''
+    Function main
+    '''
+    
     # Get arguments
     parser = argparse.ArgumentParser(description='File observer')
     parser.add_argument('-p', '--path', help='Path to watch',

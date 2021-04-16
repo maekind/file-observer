@@ -6,7 +6,7 @@ import time
 import argparse
 import requests
 import logging
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver as Observer
 from watchdog.events import FileSystemEventHandler
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import RequestException

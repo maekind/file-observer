@@ -16,7 +16,41 @@ author = 'Marco Espinosa'
 version = '1.0'
 email = 'hi@marcoespinosa.com'
 
+
+def configure_logging(name):
+    '''
+    Function to configure loggind
+    @name: logger name
+    @return logger
+    '''
+    level = logging.DEBUG
+
+    log_setup = logging.getLogger(name)
+
+    # Formatting logger output
+    formatter = logging.Formatter(
+        "%(asctime)s [%(name)s] [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+    # Setting logger to console
+    log_handler = logging.StreamHandler()
+
+    # Setting formatter
+    log_handler.setFormatter(formatter)
+
+    # Setting level
+    log_setup.setLevel(level)
+
+    # Creating handler to configured logger
+    log_setup.addHandler(log_handler)
+
+    # Set logger
+    return logging.getLogger(name)
+
+
+# Configure logger
 logger = configure_logging("file-observer")
+
 
 class FileObserver:
     '''
@@ -97,7 +131,8 @@ class Handler(FileSystemEventHandler):
             return None
 
         elif event.event_type in ['created', 'deleted']:
-            logger.info(f"Watchdog received {event.event_type} event - {event.src_path}.")
+            logger.info(
+                f"Watchdog received {event.event_type} event - {event.src_path}.")
             Handler.__send_event(event.event_type, event.src_path)
 
     @staticmethod
@@ -115,11 +150,12 @@ class Handler(FileSystemEventHandler):
             except RequestException:
                 logger.error(f'Request ERROR.')
                 return
-            
+
             if r.status_code == 200:
                 logger.info('OK')
             else:
                 logger.error(f'Request ERROR: {r.status_code}')
+
 
 def exit_fail(parser):
     '''
@@ -128,41 +164,12 @@ def exit_fail(parser):
     parser.print_help()
     exit(1)
 
-def configure_logging(name):
-    '''
-    Function to configure loggind
-    @name: logger name
-    @return logger
-    '''
-    level = logging.DEBUG
-
-    log_setup = logging.getLogger(name)
-
-    # Formatting logger output
-    formatter = logging.Formatter(
-        "%(asctime)s [%(name)s] [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-    )
-
-    # Setting logger to console       
-    log_handler = logging.StreamHandler()
-
-    # Setting formatter
-    log_handler.setFormatter(formatter)
-
-    # Setting level
-    log_setup.setLevel(level)
-
-    # Creating handler to configured logger
-    log_setup.addHandler(log_handler)
-
-    # Set logger
-    return logging.getLogger(name)
 
 def main():
     '''
     Function main
     '''
-    
+
     # Get arguments
     parser = argparse.ArgumentParser(description='File observer')
     parser.add_argument('-p', '--path', help='Path to watch',
@@ -208,6 +215,7 @@ def main():
         exit_fail(parser)
 
     exit(0)
+
 
 if __name__ == '__main__':
     main()

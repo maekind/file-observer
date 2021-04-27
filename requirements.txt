@@ -1,2 +1,2 @@
-watchdog==2.0.2
-requests==2.21.0
+watchdog
+requests

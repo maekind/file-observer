@@ -146,7 +146,7 @@ class Handler(FileSystemEventHandler):
 
             try:
                 r = requests.get(
-                    f'{Handler.address}:{Handler.port}/{event}/\"{payload}\"')
+                    f'{Handler.address}:{Handler.port}/{event}/{payload}')
             except RequestException:
                 logger.error(f'Request ERROR.')
                 return

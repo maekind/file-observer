@@ -1,55 +1,23 @@
-#!/usr/bin/env python3
+# encoding:utf-8
 '''
 File Observer daemon
 '''
 import time
 import argparse
 import requests
-import logging
 from watchdog.observers.polling import PollingObserver as Observer
 from watchdog.events import FileSystemEventHandler
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import RequestException
+from lib.logger import Logger
 
 
-author = 'Marco Espinosa'
-version = '1.0'
-email = 'hi@marcoespinosa.com'
-
-
-def configure_logging(name):
-    '''
-    Function to configure loggind
-    @name: logger name
-    @return logger
-    '''
-    level = logging.DEBUG
-
-    log_setup = logging.getLogger(name)
-
-    # Formatting logger output
-    formatter = logging.Formatter(
-        "%(asctime)s [%(name)s] [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-    )
-
-    # Setting logger to console
-    log_handler = logging.StreamHandler()
-
-    # Setting formatter
-    log_handler.setFormatter(formatter)
-
-    # Setting level
-    log_setup.setLevel(level)
-
-    # Creating handler to configured logger
-    log_setup.addHandler(log_handler)
-
-    # Set logger
-    return logging.getLogger(name)
-
+__author__ = 'Marco Espinosa'
+__version__ = '1.0'
+__email__ = 'hi@marcoespinosa.com'
 
 # Configure logger
-logger = configure_logging("file-observer")
+logger = Logger("file-observer")
 
 
 class FileObserver:

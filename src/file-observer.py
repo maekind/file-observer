@@ -138,7 +138,6 @@ def main():
     '''
     Function main
     '''
-
     # Get arguments
     parser = argparse.ArgumentParser(description='File observer')
     parser.add_argument('-p', '--path', help='Path to watch',

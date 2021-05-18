@@ -133,7 +133,6 @@ def exit_fail(parser):
     parser.print_help()
     exit(1)
 
-
 def main():
     '''
     Function main

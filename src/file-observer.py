@@ -168,7 +168,7 @@ def main():
 
         if args.enablewebservice is not None:
             # If enablewebservice, host and port have to be provided
-            if args.enablewebservice == True and (args.address is None or args.port is not None):
+            if args.enablewebservice is True and (args.address is None or args.port is not None):
                 exit_fail(parser)
             else:
                 address = args.address

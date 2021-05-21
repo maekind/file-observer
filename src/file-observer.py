@@ -8,7 +8,6 @@ import argparse
 import requests
 from watchdog.observers.polling import PollingObserver as Observer
 from watchdog.events import FileSystemEventHandler
-from urllib3.exceptions import NewConnectionError
 from requests.exceptions import RequestException
 from lib.logger import Logger
 
@@ -17,30 +16,27 @@ __author__ = 'Marco Espinosa'
 __version__ = '1.0'
 __email__ = 'hi@marcoespinosa.com'
 
-# Configure logger
-logger = Logger("file-observer")
-
-
 class FileObserver:
     '''
     File Observer class
     '''
 
     # Private variables
-    watchDirectory = ""
+    watch_directory = ""
     address = ""
     port = 0
 
-    def __init__(self, path, address="", port=0):
+    def __init__(self, logger, path, address="", port=0):
         '''
         Default constructor
         @path: path to watch
         '''
 
         self.observer = Observer()
-        self.watchDirectory = path
+        self.watch_directory = path
         self.address = address
         self.port = port
+        self.logger = logger
 
     def run(self, recursive=True):
         '''
@@ -56,7 +52,7 @@ class FileObserver:
             event_handler.set_port(self.port)
 
         self.observer.schedule(
-            event_handler, self.watchDirectory, recursive=recursive)
+            event_handler, self.watch_directory, recursive=recursive)
         self.observer.start()
 
         try:
@@ -65,7 +61,7 @@ class FileObserver:
                 time.sleep(5)
         except:
             self.observer.stop()
-            logger.info("Observer Stopped")
+            self.logger.info("Observer Stopped")
 
         self.observer.join()
 
@@ -76,6 +72,15 @@ class Handler(FileSystemEventHandler):
     '''
     address = ""
     port = 0
+    logger = None
+
+    @staticmethod
+    def set_logger(logger):
+        '''
+        Function to set logger
+        '''
+        Handler.logger = logger
+
 
     @staticmethod
     def set_address(value):
@@ -99,8 +104,8 @@ class Handler(FileSystemEventHandler):
         if event.is_directory:
             return None
 
-        elif event.event_type in ['created', 'deleted']:
-            logger.info(
+        if event.event_type in ['created', 'deleted']:
+            Handler.logger.info(
                 f"Watchdog received {event.event_type} event - {event.src_path}.")
             Handler.__send_event(event.event_type, event.src_path)
 
@@ -110,20 +115,20 @@ class Handler(FileSystemEventHandler):
         Send event to webservice
         '''
         if Handler.address != "" and Handler.port != 0:
-            logger.info(
+            Handler.logger.info(
                 f"Sending {event} with {payload} to webservice")
 
             try:
-                r = requests.get(
+                req = requests.get(
                     f'{Handler.address}:{Handler.port}/{event}/{payload}')
             except RequestException:
-                logger.error(f'Request ERROR.')
+                Handler.logger.error('Request ERROR.')
                 return
 
-            if r.status_code == 200:
-                logger.info('OK')
+            if req.status_code == 200:
+                Handler.logger.info('OK')
             else:
-                logger.error(f'Request ERROR: {r.status_code}')
+                Handler.logger.error(f'Request ERROR: {req.status_code}')
 
 
 def exit_fail(parser):
@@ -137,6 +142,9 @@ def main():
     '''
     Function main
     '''
+    # Configure logger
+    logger = Logger("File-observer")  
+
     # Get arguments
     parser = argparse.ArgumentParser(description='File observer')
     parser.add_argument('-p', '--path', help='Path to watch',
@@ -145,11 +153,13 @@ def main():
     parser.add_argument('-r', '--recursive', help='Set to True to recursive watch',
                         dest='recursive', metavar='BOOLEAN')
 
-    parser.add_argument('-e', '--enable-webservice', help='Set to True to send events to webservice',
+    parser.add_argument('-e', '--enable-webservice', 
+                        help='Set to True to send events to webservice',
                         dest='enablewebservice', metavar='BOOLEAN')
 
     parser.add_argument('-a', '--address',
-                        help='Webservice host address or FQDN. Mandatory if enable-webservice set to True',
+                        help='''Webservice host address or FQDN.
+                            Mandatory if enable-webservice set to True''',
                         dest='address', metavar='STRING')
 
     parser.add_argument('-o', '--port',
@@ -175,7 +185,7 @@ def main():
         logger.info(f'Monitoring changes in {args.path}')
         logger.info(f'Send events to {address}:{port}')
 
-        watch = FileObserver(args.path, address, port)
+        watch = FileObserver(logger, args.path, address, port)
         # Launch of FileObserver
         watch.run(args.recursive)
     else:

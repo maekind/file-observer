@@ -529,7 +529,8 @@ max-returns=6
 max-statements=50
 
 # Minimum number of public methods for a class (see R0903).
-min-public-methods=2
+# Marco ESPINOSA
+min-public-methods=0
 
 
 [CLASSES]

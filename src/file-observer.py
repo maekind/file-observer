@@ -16,6 +16,7 @@ __author__ = 'Marco Espinosa'
 __version__ = '1.0'
 __email__ = 'hi@marcoespinosa.com'
 
+
 class FileObserver:
     '''
     File Observer class
@@ -81,7 +82,6 @@ class Handler(FileSystemEventHandler):
         '''
         Handler.logger = logger
 
-
     @staticmethod
     def set_address(value):
         '''
@@ -138,12 +138,13 @@ def exit_fail(parser):
     parser.print_help()
     exit(1)
 
+
 def main():
     '''
     Function main
     '''
     # Configure logger
-    logger = Logger("File-observer")  
+    logger = Logger("File-observer")
 
     # Get arguments
     parser = argparse.ArgumentParser(description='File observer')
@@ -153,7 +154,7 @@ def main():
     parser.add_argument('-r', '--recursive', help='Set to True to recursive watch',
                         dest='recursive', metavar='BOOLEAN')
 
-    parser.add_argument('-e', '--enable-webservice', 
+    parser.add_argument('-e', '--enable-webservice',
                         help='Set to True to send events to webservice',
                         dest='enablewebservice', metavar='BOOLEAN')
 

@@ -8,7 +8,6 @@ import argparse
 import requests
 from watchdog.observers.polling import PollingObserver as Observer
 from watchdog.events import FileSystemEventHandler
-from requests.exceptions import RequestException
 from lib.logger import Logger
 
 
@@ -101,10 +100,7 @@ class Handler(FileSystemEventHandler):
         '''
         Static method to handler filesystem event changes
         '''
-        if event.is_directory:
-            return None
-
-        if event.event_type in ['created', 'deleted']:
+        if not event.is_directory and event.event_type in ['created', 'deleted']:
             Handler.logger.info(
                 f"Watchdog received {event.event_type} event - {event.src_path}.")
             Handler.__send_event(event.event_type, event.src_path)
@@ -121,7 +117,7 @@ class Handler(FileSystemEventHandler):
             try:
                 req = requests.get(
                     f'{Handler.address}:{Handler.port}/{event}/{payload}')
-            except RequestException:
+            except requests.RequestException:
                 Handler.logger.error('Request ERROR.')
                 return
 
